@@ -3,6 +3,7 @@ import dynamic from 'next/dynamic'
 import { Header } from "../components/header"
 import { Sidebar } from "../components/sidebar"
 import { ApexOptions } from "apexcharts"
+import { useEffect, useState } from "react"
 
 const Chart = dynamic(() => import('react-apexcharts'), {
     ssr: false,
@@ -52,7 +53,7 @@ const options: ApexOptions = {
         gradient: {
             shade: 'dark',
             opacityFrom: 0.7,
-            opacityTo: 0.3 
+            opacityTo: 0.3
         }
     }
 }
@@ -63,34 +64,44 @@ const series = [
     }
 ]
 
+
+
 export default function Dashboard() {
+
+    const [assembleGraphics, setAssembleGraphics] = useState(false)
+
+    useEffect(() => {
+        setAssembleGraphics(true)
+    }, [])
+
     return (
         <Flex direction="column" h="100vh">
             <Header />
 
             <Flex w="100%" my="6" maxWidth={1480} mx="auto" px="6">
                 <Sidebar />
-
-                <SimpleGrid flex="1" gap="4" minChildWidth="320px">
-                    <Box
-                        p={["4", "6"]}
-                        bg="gray.800"
-                        borderRadius={8}
-                        pb="4"
-                    >
-                        <Text fontSize="lg" mb="4">Subscribers of the week</Text>
-                        <Chart options={options} series={series} type="area" height={160}/>
-                    </Box>
-                    <Box
-                        p={["4", "6"]}
-                        bg="gray.800"
-                        borderRadius={8}
-                        pb="4"
-                    >
-                        <Text fontSize="lg" mb="4">Registration fee</Text>
-                        <Chart options={options} series={series} type="area" height={160}/>
-                    </Box>
-                </SimpleGrid>
+                {assembleGraphics && (
+                    <SimpleGrid flex="1" gap="4" minChildWidth="320px">
+                        <Box
+                            p={["4", "6"]}
+                            bg="gray.800"
+                            borderRadius={8}
+                            pb="4"
+                        >
+                            <Text fontSize="lg" mb="4">Subscribers of the week</Text>
+                            <Chart options={options} series={series} type="area" height={160} />
+                        </Box>
+                        <Box
+                            p={["4", "6"]}
+                            bg="gray.800"
+                            borderRadius={8}
+                            pb="4"
+                        >
+                            <Text fontSize="lg" mb="4">Registration fee</Text>
+                            <Chart options={options} series={series} type="area" height={160} />
+                        </Box>
+                    </SimpleGrid>
+                )}
 
             </Flex>
 
