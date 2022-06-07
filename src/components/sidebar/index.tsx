@@ -13,7 +13,7 @@ export function Sidebar() {
 
     if (isDrawerSidebar) {
         return (
-            <Drawer isOpen={isOpen} onClose={onClose} placement="left">
+            <Drawer size="full" isOpen={isOpen} onClose={onClose} placement="left">
                 <DrawerOverlay>
                     <DrawerContent bg="gray.800">
                         <DrawerCloseButton mt="6" py="4"/>

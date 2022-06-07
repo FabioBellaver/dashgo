@@ -50,8 +50,8 @@ export default function SignIn() {
             type="email"
             label="E-mail"
             error={errors.email}
-            {...register('email')} 
-            />
+            {...register('email')}
+          />
           <Input
             name="password"
             type="password"
