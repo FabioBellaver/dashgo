@@ -1,10 +1,14 @@
-import { Box, Button, Checkbox, Flex, Heading, Icon, Table, Tbody, Td, Th, Thead, Tr, Text, useBreakpointValue, Spinner } from "@chakra-ui/react";
+import { Box, Button, Checkbox, Flex, Heading, Icon, Table, Tbody, Td, Th, Thead, Tr, Text, useBreakpointValue, Spinner, Link } from "@chakra-ui/react";
 import { RiAddLine, RiPencilLine } from "react-icons/ri";
-import Link from "next/link";
+import NextLink from "next/link";
+
 import { Header } from "../../components/header";
 import { Pagination } from "../../components/pagination";
 import { Sidebar } from "../../components/sidebar";
 import { useUsers } from "../../services/hooks/useUsers";
+import { useState } from "react";
+import { queryClient } from "../../services/queryClient";
+import { api } from "../../services/api";
 
 type User = {
     id: string;
@@ -20,7 +24,18 @@ export default function UserList() {
         lg: true,
     })
 
-    const { data, isLoading, isFetching, error } = useUsers()
+    async function handlePrefetchUser(userId: string) {
+        await queryClient.prefetchQuery(['user', userId], async () => {
+            const response = await api.get(`users/${userId}`)
+            return response.data
+        }, {
+            staleTime: 1000 * 60 * 10 // 10m
+        })
+    }
+
+    const [page, setPage] = useState(1)
+
+    const { data, isLoading, isFetching, error } = useUsers(page)
 
     return (
         <Box>
@@ -33,11 +48,11 @@ export default function UserList() {
 
                         <Heading size="lg" fontWeight="normal">
                             Users
-                            { !isLoading && isFetching && 
-                            <Spinner size="sm" color="gray.500" ml="4"/> }
+                            {!isLoading && isFetching &&
+                                <Spinner size="sm" color="gray.500" ml="4" />}
                         </Heading>
 
-                        <Link href="/users/create" passHref>
+                        <NextLink href="/users/create" passHref>
                             <Button
                                 cursor="pointer"
                                 as="a"
@@ -48,7 +63,7 @@ export default function UserList() {
                             >
                                 Create new user
                             </Button>
-                        </Link>
+                        </NextLink>
                     </Flex>
 
                     {isLoading ? (
@@ -80,7 +95,7 @@ export default function UserList() {
                                 </Thead>
 
                                 <Tbody>
-                                    {data.map((user: User) => {
+                                    {data.users.map((user: User) => {
                                         return (
                                             <Tr key={user.id}>
                                                 <Td px={["4", "4", "6"]}>
@@ -88,7 +103,9 @@ export default function UserList() {
                                                 </Td>
                                                 <Td>
                                                     <Box>
-                                                        <Text fontWeight="bold">{user.name}</Text>
+                                                        <Link color="purple.400" onMouseEnter={() => handlePrefetchUser(user.id)}>
+                                                            <Text fontWeight="bold">{user.name}</Text>
+                                                        </Link>
                                                         <Text fontSize="sm" color="gray.300">{user.email}</Text>
                                                     </Box>
                                                 </Td>
@@ -114,10 +131,10 @@ export default function UserList() {
                                 </Tbody>
                             </Table>
 
-                            <Pagination 
-                            totalCountOfRegisters={200}
-                            currentPage={4}
-                            onPageChange={() => {}}
+                            <Pagination
+                                totalCountOfRegisters={data.totalCount}
+                                currentPage={page}
+                                onPageChange={setPage}
                             />
                         </>
                     )}

@@ -7,6 +7,10 @@ import Link from "next/link";
 import { Input } from "../../components/form/input";
 import { Header } from "../../components/header";
 import { Sidebar } from "../../components/sidebar";
+import { useMutation } from "react-query";
+import { api } from "../../services/api";
+import { queryClient } from "../../services/queryClient";
+import { useRouter } from "next/router";
 
 interface CreateUserFormData {
     name: string;
@@ -24,6 +28,22 @@ const createUserFormSchema = yup.object().shape({
 
 export default function CreateUser() {
 
+    const router = useRouter()
+
+    const createUser = useMutation(async (user: CreateUserFormData) => {
+        const response = await api.post('users', {
+            user: {
+                ...user,
+                created_at: new Date()
+            }
+        })
+        return response.data.user
+    }, {
+        onSuccess: () => {
+            queryClient.invalidateQueries(['users'])
+        }
+    })
+
     const { register, handleSubmit, formState } = useForm({
         resolver: yupResolver(createUserFormSchema)
     })
@@ -31,8 +51,8 @@ export default function CreateUser() {
     const { errors } = formState
 
     const handleCreateUser: SubmitHandler<CreateUserFormData> = async (data) => {
-        await new Promise(resolve => setTimeout(resolve, 2000))
-        console.log(data)
+        await createUser.mutateAsync(data)
+        router.push('/users')
     }
 
     return (
@@ -74,12 +94,14 @@ export default function CreateUser() {
 
                         <SimpleGrid minChildWidth="240px" spacing="8" w="100%">
                             <Input
+                                type="password"
                                 name="password"
                                 label="Password"
                                 error={errors.password}
                                 {...register('password')}
                             />
                             <Input
+                                type="password"
                                 name="password_confirmation"
                                 label="Password Confirmation"
                                 error={errors.password_confirmation}
